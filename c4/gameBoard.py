@@ -22,7 +22,12 @@ class gameBoard:
 		self.board = new_board
 #_________________
 	def move(self, symbol,row):
+		
 		board = self.getBoard()
+
+		if(board[row][0] != " "):
+			raise ValueError('A very specific bad thing happened.')
+
 		for i in range(len(board[row])):
 			if (board[row][i] != " "):
 				board[row][i-1] = symbol
@@ -43,17 +48,22 @@ class gameBoard:
 		return False
 	def isTerminal(self):
 		board_tbc = np.array(self.board)
+		isTie = True
 		for z in range(4):
 			for x in range(len(board_tbc.tolist())):
 				for y in range(len(board_tbc.tolist()[0])):
+
 					if board_tbc[x][y] != ' ':	
+						
 						try:
 							if(self.check_diagonal(board_tbc.tolist(),x,y) or self.check_straight(board_tbc.tolist(),x,y)):
 								return True, board_tbc[x][y]
 						except:
 							pass
+					else:
+						isTie = False
+							
+			if(isTie):
+				return True, "TIE"
 			board_tbc = np.rot90(board_tbc,axes=(1,0))	
 		return False, ""
-
-
-
