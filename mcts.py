@@ -2,105 +2,191 @@ import numpy as np
 import random
 from c4 import gameBoard, Player
 from copy import deepcopy
-class mctsNode:
-    def __init__(self, parent,parent_action, symbol):
+import math
 
-      self.gameBoard = gameBoard.gameBoard(6,7)
-      self.symbol = symbol
+class Node:
+	def __init__(self,state: tuple = None,parent: object = None, symbol: str = None):
+		self.state = state
+		self.parent = parent
+		self.childs = []
+		self.legal_actions = self.legal_actions()
 
-      if not (parent == None):
-        self.parent = parent
-        self.parent_action = parent_action
-        self.s = self.parent.si
-
-        
-        self.gameBoard.setBoard(parent.gameBoard.move(self.parent.symbol,self.parent_action))
-      else:
-        
-        self.s = 1 #what is the # of parent node simulations for a root node
+		self.untried_actions = deepcopy(self.legal_actions)
+		#self.untried_actions = self.legal_actions()
 
 
-      self.state = self.gameBoard.getBoard()
+		self.win = 0
+		self.simulations = 0
+		self.c = math.sqrt(2)
 
-      self.childs = []
-      self.untried_actions = self.legal_actions()
-      self.legal_actions = self.legal_actions()
-      
-      self.w = 0
-      self.si = 0
-      
+		self.ucb1 = self.calculate_ucb1()
+
+		self.rows = 6
+		self.columns = 7
+
+		self.symbol = symbol
+		if(symbol == None):
+			self.symbol = "X"
+
+	def calculate_ucb1(self):
+		if(self.parent == None):
+			self.parent_simulations = 0
+		else:
+			self.parent_simulations = self.parent.simulations
+		try:
+			return (self.win/self.simulations) + self.c*(math.log(self.parent_simulations)/self.simulations)
+		except:
+			return 0
+
+	def legal_actions(self):  
+		legal_actions = []
+		for i in range(6):
+			if(self.state[i][0] == " "):
+				legal_actions.append(i)
+		return legal_actions
+
+    
+	def printBoard(self):
+		for i in range(self.rows+2):
+			print("-",end="")
+		print("")
+		for i in range(len(self.state[0])):
+			print("|",end="")
+			for j in range(len(self.state)):
+				print(self.state[j][i], end="")
+			print("|")
+		for i in range(self.rows+2):
+			print("-",end="")
+		print("")
+	
+	def move(self, row):
+		board = deepcopy(self.state)
+		symbol = self.symbol 
+
+		if(board[row][0] != " "):
+			raise ValueError('A very specific bad thing happened.')
+
+		for i in range(len(board[row])):
+			if (board[row][i] != " "):
+				board[row][i-1] = symbol
+				break
+			if(i == len(board[row])-1):
+				board[row][i] = symbol			
+		return board
+#__________________
+	def check_straight(self,board,x,y):
+		symbol = board[x][y]
+		if(board[x][y] == symbol and board[x][y+1] == symbol and board[x][y+2] == symbol and board[x][y+3] == symbol):
+			return True
+		return False
+	def check_diagonal(self,board,x,y):
+		symbol = board[x][y]
+		if(board[x][y] == symbol and board[x+1][y+1] == symbol and board[x+2][y+2] == symbol and board[x+3][y+3] == symbol):
+			return True
+		return False
+
+	def isTerminal(self):
+		board_tbc = np.array(deepcopy(self.state))
+		isTie = True
+		for z in range(4):
+			for x in range(len(board_tbc.tolist())):
+				for y in range(len(board_tbc.tolist()[0])):
+
+					if board_tbc[x][y] != ' ':	
+						
+						try:
+							if(self.check_diagonal(board_tbc.tolist(),x,y) or self.check_straight(board_tbc.tolist(),x,y)):
+								return True, board_tbc[x][y]
+						except:
+							pass
+					else:
+						isTie = False
+							
+			if(isTie):
+				return True, "T"
+			board_tbc = np.rot90(board_tbc,axes=(1,0))	
+		return False, ""
+
+class mctsAgent:
+	def __init__(self,state):
+
+		self.root_state = deepcopy(state)
+		#does a move
+		self.root_node = Node(self.root_state)
+		
+	def print_childs(self,node): 
+		for child in node.childs:
+			print(child.state,end="\t")
+		print("")
+		for child in node.childs:
+			self.print_childs(child)
+	def print_tree(self):
+		print(self.root_node.state)
+		self.print_childs(self.root_node)
 
 
-    def legal_actions(self):    #verifiably pog
-    	legal_actions = []
-    	for i in range(6):
-    		if(self.state[i][0] == " "):
-    			legal_actions.append(i)
-    	return legal_actions
-
-    def untried_actions(self):
-    	possible_actions = self.legal_actions()
-    	for child in self.childs:
-    		if(child.parent_action in self.untried_actions):
-    			self.untried_actions.remove(child.parent_action)
-
-    def ucb1(self,node):
-    	c = math.sqrt(2)
-    	return (node.wi/node.si) + c*(math.log(node.s)/node.si)
-
-    def selection(self):
-      actions = self.legal_actions
-
-      if(len(self.untried_actions) > 0):
-        return random.choice(self.untried_actions)
-      _max = 0
-
-      counter=0
-      for i in range(len(self.childs)):
-        counter = i
-        if (self.ucb1(self.childs[i]) > _max):
-          _max = self.ucb1(self.childs[i])
-
-      child = self.childs[counter]
-      child.selection()
-
-    #gets action from selection function
-    def expansion(self,action):
-
-      if (self.symbol == "X"):
-        new_symbol = "O"
-      else:
-        new_symbol = "X"
-
-      new_child = mctsNode(self,action,new_symbol)
-
-      self.childs.append(new_child)
-      return new_child
-    #gets child from expansioin
-    def simulation(self,node):
-      temp_node = deepcopy(node) 
-
-      isFinished, winner = node.gameBoard.isTerminal()
-      temp_symbol = temp_node.symbol
-      while not(isFinished):
-        action = random.choice(temp_node.legal_actions)
-        temp_gameBoard = temp_node.gameBoard.move(temp_symbol,action) 
-        temp_node.gameBoard.setBoard(temp_gameBoard)
-        temp_node.gameBoard.printBoard()
-        isFinished, winner = temp_node.gameBoard.isTerminal()
-        if(temp_symbol == "X"):
-          temp_symbol = "O"
-        else:
-          temp_symbol = "X"
-      return winner
-
-    def backpropogation(self):
-      for ()
+	def select(self,node):
+		if(len(node.untried_actions) == 0):
+			_max = 0
+			i = 0 
+			for i in range(len(node.childs)):
+				if(node.childs[i].ucb1 > _max):
+					_max = ode.childs[i].ucb1 
+			child = node.childs[i]
+			self.select(child)
+		else:
+			isEnd, winner = node.isTerminal()
+			if(isEnd):
+				if(winner== node.symbol):
+					node.win += 1
+					node.simulations += 1
+			else:
+				new_state, action = self.expand(node)
+				if(node.symbol == "X"):
+					new_symbol = "O"
+				else:
+					new_symbol = "X"
+				child = Node(new_state,node,new_symbol)
 
 
-def mcts():
-  root = mctsNode(None,None,"X")
-  a = root.expansion(root.selection())
-  print(a.simulation(a))
-if __name__ == '__main__':
-  mcts()
+				node.childs.append(child)
+				
+				
+
+
+	def expand(self,node):
+		temp_action = random.choice(node.untried_actions)
+		node.untried_actions.remove(temp_action)
+		return node.move(temp_action), temp_action
+			
+	def simulate(self):
+		pass
+
+	def backprop(self):
+		pass
+
+	def runSearch(self,state,timeout):
+		pass
+	def bestPlay(self,state):
+		pass
+
+if __name__ == "__main__":
+	state = [[' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' ']]
+	agent = mctsAgent(state)
+	agent.select(agent.root_node)
+	agent.select(agent.root_node)
+	agent.select(agent.root_node)
+	agent.select(agent.root_node)
+	agent.select(agent.root_node)
+	agent.select(agent.root_node)
+	agent.select(agent.root_node) #------------
+	agent.select(agent.root_node)
+	agent.select(agent.root_node)
+	agent.select(agent.root_node)
+	agent.select(agent.root_node)
+	agent.select(agent.root_node)
+	agent.select(agent.root_node)
+
+
+	agent.print_tree()
+
