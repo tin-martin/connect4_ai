@@ -115,7 +115,7 @@ class Node:
 
 class mctsAgent:
 	def __init__(self,state):
-		self.state
+		self.state = state
 		self.root_state = deepcopy(state)
 		#does a move
 		self.root_node = Node(self.root_state)
