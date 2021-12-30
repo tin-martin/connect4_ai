@@ -111,7 +111,7 @@ if __name__ == "__main__":
     root_node = Node(gameBoard=root_gb)
     
     current_node = root_node
-    for i in range(10000000*1000):
+    for i in range(10000000*10):
         
         if(len(current_node.untried_actions) == 0):
             isFinished,winner = current_node.gb.isTerminal()
@@ -138,18 +138,27 @@ if __name__ == "__main__":
 
     def check_childs(node,state,the_node):
         for child in node.childs:
+            if(the_node != None):
+                break
             if(child.state == state):
                 the_node = child
-        for child in node.childs:
-            check_childs(child,state,the_node)
+        
+        if(the_node == None):
+            for child in node.childs:
+                if(the_node != None):
+                    break
+                check_childs(child,state,the_node)
 
     def best_move(state,symbol):
         the_node = None
-        check_childs(root_node,state,the_node)
+        if(root_node.state == state):
+            the_node = root_node
+        else:
+            check_childs(root_node,state,the_node)
 
         foo = lambda x:  x.visits
-        node = sorted(the_node.childs,key=foo)[-1]
-        return node.action
+        action = sorted(the_node.childs,key=foo)[-1].action
+        return action
         
         
 
@@ -157,10 +166,32 @@ if __name__ == "__main__":
     gb = gameBoard.gameBoard(state)
 
     symbol = "X"
-    while(True):
+
+    isFinished, winner = gb.isTerminal()
+    while not(isFinished):
         symbol = "O"
         gb.move(symbol,best_move(gb.board,symbol))
         gb.printBoard()
+        isFinished, winner = gb.isTerminal()
+
+    if(winner == "X"):
+        print("""
+██╗    ██╗██╗███╗   ██╗███╗   ██╗███████╗██████╗        ██╗  ██╗    
+██║    ██║██║████╗  ██║████╗  ██║██╔════╝██╔══██╗██╗    ╚██╗██╔╝    
+██║ █╗ ██║██║██╔██╗ ██║██╔██╗ ██║█████╗  ██████╔╝╚═╝     ╚███╔╝     
+██║███╗██║██║██║╚██╗██║██║╚██╗██║██╔══╝  ██╔══██╗██╗     ██╔██╗     
+╚███╔███╔╝██║██║ ╚████║██║ ╚████║███████╗██║  ██║╚═╝    ██╔╝ ██╗    
+╚══╝╚══╝ ╚═╝╚═╝  ╚═══╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝       ╚═╝  ╚═╝    
+        """)
+    else:
+        print("""
+██╗    ██╗██╗███╗   ██╗███╗   ██╗███████╗██████╗         ██████╗ 
+██║    ██║██║████╗  ██║████╗  ██║██╔════╝██╔══██╗██╗    ██╔═══██╗
+██║ █╗ ██║██║██╔██╗ ██║██╔██╗ ██║█████╗  ██████╔╝╚═╝    ██║   ██║
+██║███╗██║██║██║╚██╗██║██║╚██╗██║██╔══╝  ██╔══██╗██╗    ██║   ██║
+╚███╔███╔╝██║██║ ╚████║██║ ╚████║███████╗██║  ██║╚═╝    ╚██████╔╝
+ ╚══╝╚══╝ ╚═╝╚═╝  ╚═══╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝        ╚═════╝                                                  
+        """)
 
 
 """
