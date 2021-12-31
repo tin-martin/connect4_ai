@@ -1,9 +1,10 @@
 import numpy as np
+from copy import deepcopy
 class gameBoard:
-	def __init__(self,columns,rows):
-		self.columns = columns
-		self.rows  =  rows
-		self.board = [[" " for i in range(columns)] for i in range(rows)]
+	def __init__(self, board):
+		self.rows = 6
+		self.columns  =  7
+		self.board = board
 	def getBoard(self):
 		return self.board
 	def printBoard(self):
@@ -18,12 +19,13 @@ class gameBoard:
 		for i in range(self.rows+2):
 			print("-",end="")
 		print("")
+		
 	def setBoard(self, new_board):
 		self.board = new_board
 #_________________
 	def move(self, symbol,row):
 		
-		board = self.getBoard()
+		board = deepcopy(self.getBoard())
 
 		if(board[row][0] != " "):
 			raise ValueError('A very specific bad thing happened.')
@@ -47,7 +49,7 @@ class gameBoard:
 			return True
 		return False
 	def isTerminal(self):
-		board_tbc = np.array(self.board)
+		board_tbc = deepcopy(np.array(self.board))
 		isTie = True
 		for z in range(4):
 			for x in range(len(board_tbc.tolist())):
@@ -65,8 +67,16 @@ class gameBoard:
 							
 			if(isTie):
 				return True, "TIE"
+				
 			board_tbc = np.rot90(board_tbc,axes=(1,0))	
-		return False, ""
+		return False, " "
+
+	def get_legal_actions(self):
+		legal_actions = []
+		for i in range(self.rows):
+			if(self.board[i][0] == " "):
+				legal_actions.append(i)
+		return legal_actions
 
 
 
