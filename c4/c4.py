@@ -2,25 +2,25 @@ from Player import Player
 from gameBoard import gameBoard
 
 if __name__ == '__main__':	
-	gameBoard = gameBoard(7,6)
+	state =[[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]]
+	gameBoard = gameBoard(state)
 	i=0
 	while(True):
 		if(i % 2 == 0):
 			while(True):
 				try:
-					gameBoard.board = gameBoard.move("O", int(input("Enter move:")))
+					gameBoard.board = gameBoard.move(2, int(input("Enter move:")))
 					break
 				except:
 					pass
 		else:
 			while(True):
 				try:
-					gameBoard.board = gameBoard.move("X", int(input("Enter move:")))
+					gameBoard.board = gameBoard.move(1, int(input("Enter move:")))
 					break
 				except:
 					pass
 			
-		print(gameBoard.board)
 		gameBoard.printBoard()
 		isFinished, winner = gameBoard.isTerminal()
 

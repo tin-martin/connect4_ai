@@ -20,7 +20,7 @@ img_h = int(img_h * scale)
 image = cv2.resize(image, (img_w,img_h), interpolation = cv2.INTER_AREA)
 copy = image.copy()
 
-image = cv2.bilateralFilter(image,13,300,300) 
+image = cv2.bilateralFilter(image,15,190,190) 
 
 
 image = cv2.fastNlMeansDenoising(image,10,7,21)
