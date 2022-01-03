@@ -1,19 +1,34 @@
 from Player import Player
 from gameBoard import gameBoard
+
 if __name__ == '__main__':	
-	gameBoard = gameBoard(7,5)
-	player1 = Player("X",gameBoard)
-	player2 = Player("O",gameBoard)	
+	gameBoard = gameBoard(7,6)
 	i=0
 	while(True):
 		if(i % 2 == 0):
-			player1.move(int(input("Enter move:")))
+			while(True):
+				try:
+					gameBoard.board = gameBoard.move("O", int(input("Enter move:")))
+					break
+				except:
+					pass
 		else:
-			player2.move(int(input("Enter move:")))
-
+			while(True):
+				try:
+					gameBoard.board = gameBoard.move("X", int(input("Enter move:")))
+					break
+				except:
+					pass
+			
+		print(gameBoard.board)
 		gameBoard.printBoard()
-		if(gameBoard.check("X") == "win"):
-			print("And the winner is... X")
-		elif(gameBoard.check("O") == "win"):
-			print("And the winner is... O")
+		isFinished, winner = gameBoard.isTerminal()
+
+		if(isFinished):
+			if(winner == "TIE"):
+				print("issa tie")
+			else:
+				print("The winner is... ", winner)
+			break
 		i += 1
+
