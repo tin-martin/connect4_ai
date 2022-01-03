@@ -27,11 +27,11 @@ class gameBoard:
 		
 		board = deepcopy(self.getBoard())
 
-		if(board[row][0] != " "):
+		if(board[row][0] != 0):
 			raise ValueError('A very specific bad thing happened.')
 
 		for i in range(len(board[row])):
-			if (board[row][i] != " "):
+			if (board[row][i] != 0):
 				board[row][i-1] = symbol
 				break
 			if(i == len(board[row])-1):
@@ -55,7 +55,7 @@ class gameBoard:
 			for x in range(len(board_tbc.tolist())):
 				for y in range(len(board_tbc.tolist()[0])):
 
-					if board_tbc[x][y] != ' ':	
+					if board_tbc[x][y] != 0:	
 						
 						try:
 							if(self.check_diagonal(board_tbc.tolist(),x,y) or self.check_straight(board_tbc.tolist(),x,y)):
@@ -69,12 +69,12 @@ class gameBoard:
 				return True, "TIE"
 				
 			board_tbc = np.rot90(board_tbc,axes=(1,0))	
-		return False, " "
+		return False, 0
 
 	def get_legal_actions(self):
 		legal_actions = []
 		for i in range(self.rows):
-			if(self.board[i][0] == " "):
+			if(self.board[i][0] == 0):
 				legal_actions.append(i)
 		return legal_actions
 

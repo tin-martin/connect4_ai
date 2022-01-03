@@ -16,7 +16,7 @@ start_time = time.time()
 
 
 class Node:
-    def __init__(self, gameBoard, parent: object = None, symbol: str = "X"):
+    def __init__(self, gameBoard, parent: object = None, symbol: str = 1):
         self.gb = gameBoard
     
         self.state = deepcopy(self.gb.board)
@@ -59,10 +59,10 @@ class Node:
        
         self.untried_actions.remove(temp_action)
 
-        if(self.symbol == "X"):
-            new_symbol = "O"
+        if(self.symbol == 1):
+            new_symbol = 2
         else:
-            new_symbol = "X"
+            new_symbol = 1
 
         new_state = self.gb.move(new_symbol,temp_action)
 
@@ -81,10 +81,10 @@ class Node:
         isFinished, winner = gb.isTerminal()
         symbol = deepcopy(self.symbol)
         while not(isFinished):
-            if(symbol == "X"):
-                symbol = "O"
+            if(symbol == 1):
+                symbol = 2
             else:
-                symbol = "X"
+                symbol = 1
                 
             gb.board = gb.move(symbol,random.choice(gb.get_legal_actions()))
 
@@ -106,7 +106,7 @@ class Node:
             node = node.parent
 
 if __name__ == "__main__":
-    state = [[' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' ']]
+    state = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]]
     root_gb = gameBoard.gameBoard(board=state)
     root_node = Node(gameBoard=root_gb)
     
@@ -162,19 +162,19 @@ if __name__ == "__main__":
         
         
 
-    oState = state = [[' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' ']]
+    oState = state = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]]
     gb = gameBoard.gameBoard(state)
 
-    symbol = "X"
+    symbol = 1
 
     isFinished, winner = gb.isTerminal()
     while not(isFinished):
-        symbol = "O"
+        symbol = 2
         gb.move(symbol,best_move(gb.board,symbol))
         gb.printBoard()
         isFinished, winner = gb.isTerminal()
 
-    if(winner == "X"):
+    if(winner == 1):
         print("""
 ██╗    ██╗██╗███╗   ██╗███╗   ██╗███████╗██████╗        ██╗  ██╗    
 ██║    ██║██║████╗  ██║████╗  ██║██╔════╝██╔══██╗██╗    ╚██╗██╔╝    
