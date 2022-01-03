@@ -1,25 +1,13 @@
-from os import fdopen
-from typing import DefaultDict
 import numpy as np
-import random
-from numpy.lib.function_base import _diff_dispatcher, diff
-
-from numpy.testing._private.utils import _assert_valid_refcount
-from c4 import gameBoard
+import random, math, time
 from copy import deepcopy
-import math
 
-
-import time
-start_time = time.time()
-
-
+from c4 import gameBoard
 
 class Node:
     def __init__(self, gameBoard, parent: object = None, symbol: str = "X"):
-        self.gb = gameBoard
-    
-        self.state = deepcopy(self.gb.board)
+        self.gb = gameBoard    
+        self.state = self.gb.board
 
         self.rows, self.columns = 6,7
 
@@ -35,23 +23,17 @@ class Node:
 
         self.symbol = symbol
 
-        self.action = None
+        self.pAction = None
 
 
     def calculate_ucb1(self):
         if(self.visits == 0):
             return 0
-        ####################################
-        if(self.parent.parent == None):
-            self.parent.visits = 0
-            for child in self.parent.childs:
-                self.parent.visits += child.visits
-        ########################################
-        #print(self.wins/self.visits + np.sqrt(2)*np.sqrt(np.log(self.parent.visits)/self.visits))
+        
         return self.wins/self.visits + np.sqrt(2)*np.sqrt(np.log(self.parent.visits)/self.visits)
 
     def select(self):
-        foo = lambda x:  x.ucb1
+        foo = lambda x: x.ucb1
         return sorted(self.childs,key=foo)[-1]
 
     def expand(self):
@@ -68,9 +50,7 @@ class Node:
 
         new_gb = gameBoard.gameBoard(new_state)
         child = Node(new_gb,self,new_symbol)
-        ###############################
-        child.action = temp_action
-        ###############################
+        child.pAction = temp_action
         self.childs.append(child)
         
         return child
@@ -85,9 +65,7 @@ class Node:
                 symbol = "O"
             else:
                 symbol = "X"
-                
             gb.board = gb.move(symbol,random.choice(gb.get_legal_actions()))
-
             isFinished, winner = gb.isTerminal()
             
 
@@ -96,23 +74,26 @@ class Node:
     def update(self, winner):
         if(self.symbol == winner or "TIE" == winner):
             self.wins += 1
-        self.visits += 1
+        self.parent.visits += 1
     
     def backprop(self,winner):
         node = self
+        node.visits += 1
+
         while node.parent is not None:
             node.update(winner)
             node.ucb1 = node.calculate_ucb1()
             node = node.parent
 
 if __name__ == "__main__":
-    state = [[' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' ']]
+    start_time = time.time()
+    state = [[' ', ' ', ' ', ' ', ' ', ' '],[' ', ' ', ' ', ' ', ' ', ' '],[' ', ' ', ' ', ' ', ' ', ' '],[' ', ' ', ' ', ' ', ' ', ' '],[' ', ' ', ' ', ' ', ' ', ' '],[' ', ' ', ' ', ' ', ' ', ' '],[' ', ' ', ' ', ' ', ' ', ' ']]
     root_gb = gameBoard.gameBoard(board=state)
+    root_gb.printBoard()
     root_node = Node(gameBoard=root_gb)
-    
     current_node = root_node
-    for i in range(10000000*10):
-        
+
+    for i in range(100000000):
         if(len(current_node.untried_actions) == 0):
             isFinished,winner = current_node.gb.isTerminal()
             if(isFinished):
@@ -121,7 +102,6 @@ if __name__ == "__main__":
                 current_node = root_node
             else:
                 current_node = current_node.select()  
-            
         else:    
             current_node = current_node.expand()
 
@@ -131,14 +111,12 @@ if __name__ == "__main__":
             current_node.gb.printBoard()
             
             current_node = root_node
-            print(i)
-    
+
     print("Process finished --- %s seconds ---" % (time.time() - start_time))
 
-
     def check_childs(node,state,the_node):
-        for child in node.childs:
-            if(the_node != None):
+        for child in node.childs:                                                                                                         
+            if(the_node != None): 
                 break
             if(child.state == state):
                 the_node = child
@@ -157,12 +135,12 @@ if __name__ == "__main__":
             check_childs(root_node,state,the_node)
 
         foo = lambda x:  x.visits
-        action = sorted(the_node.childs,key=foo)[-1].action
+        action = sorted(the_node.childs,key=foo)[-1].pAction
         return action
         
         
 
-    oState = state = [[' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' '], [' ', ' ', ' ', ' ', ' ', ' ', ' ']]
+    oState = state = [[' ',' ',' ',' ',' ',' '],[' ',' ',' ',' ',' ',' '],[' ',' ',' ',' ',' ',' '],[' ',' ',' ',' ',' ',' '],[' ',' ',' ',' ',' ',' '],[' ',' ',' ',' ',' ',' '],[' ',' ',' ',' ',' ',' ']]
     gb = gameBoard.gameBoard(state)
 
     symbol = "X"
