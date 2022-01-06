@@ -1,10 +1,5 @@
-from os import fdopen
-from typing import DefaultDict
 import numpy as np
 import random
-from numpy.lib.function_base import _diff_dispatcher, diff
-
-from numpy.testing._private.utils import _assert_valid_refcount
 from c4 import gameBoard
 from copy import deepcopy
 import math
