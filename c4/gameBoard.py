@@ -8,16 +8,19 @@ class gameBoard:
 	def getBoard(self):
 		return self.board
 	def printBoard(self):
-		for i in range(self.columns+2):
-			print("-",end="")
+		for i in range(self.columns):
+			print(i,end=" ")
 		print("")
 		for i in range(self.rows):
-			print("|",end="")
 			for j in range(self.columns):
-				print(self.board[j][i], end="")
-			print("|")
-		for i in range(self.columns+2):
-			print("-",end="")
+				if(self.board[j][i] == 0):
+					
+					print("_", end=" ")
+				elif(self.board[j][i] == 1):
+					print("X", end=" ")
+				else:
+					print("O", end=" ")
+			print("")
 		print("")
 		
 	def setBoard(self, new_board):
