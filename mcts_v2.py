@@ -38,7 +38,7 @@ class Node:
 
     def calculate_ucb1(self):
         if(self.visits == 0):
-            return math.inf
+            return 0
         ####aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
         if(self.parent.parent == None):
             self.parent.visits = 0
@@ -46,7 +46,7 @@ class Node:
                 self.parent.visits += child.visits
         ########################################a
         #print(self.wins/self.visits + np.sqrt(2)*np.sqrt(np.log(self.parent.visits)/self.visits))
-        return self.wins/self.visits + np.sqrt(2)*np.sqrt(np.log(self.parent.visits)/self.visits)
+        return self.wins/self.visits + np.sqrt(2*np.log(self.parent.visits)/self.visits)
 
     def select(self):
         foo = lambda x:  x.ucb1
@@ -90,8 +90,10 @@ class Node:
         return winner
 
     def update(self, winner):
-        if(self.symbol == winner or "TIE" == winner):
+        if(self.symbol == winner):
             self.wins += 1
+        if(self.symbol == "TIE"):
+            self.wins += 0.5
         self.visits += 1
     
     def backprop(self,winner):
@@ -101,105 +103,104 @@ class Node:
             node.ucb1 = node.calculate_ucb1()
             node = node.parent
 
-if __name__ == "__main__":
-    state = [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0]]
+def find_best_move(state,symbol,iterations,max_depth=5):
     root_gb = gameBoard.gameBoard(board=state)
     root_node = Node(gameBoard=root_gb) 
     current_node = root_node
-    for i in range(80000000):
-
-        if(i % 10000 == 0):        
-            pyautogui.press("alt")                
-        if(len(current_node.untried_actions) == 0):
-            isFinished,winner = current_node.gb.isTerminal()
-            if(isFinished):
-                current_node.backprop(winner)
-                current_node.gb.printBoard()
-                current_node = root_node
-            else:
-                current_node = current_node.select()  
-            
-        else:    
-            current_node = current_node.expand()
-
-            winner = current_node.simulate()
-            
-            current_node.backprop(winner)
-            current_node.gb.printBoard()
-            
-            current_node = root_node
-            print(i)
-     
-   # with open('/Users/martintin/Desktop/connect4/root_node.pickle', 'wb') as f:
-  #      pickle.dump(root_node, f)
-#aaaaaaaaaaaaa
-    print("Process finished --- %s seconds ---" % (time.time() - start_time))
-
-
-    def check_childs(node,state,the_node):
-        for child in node.childs:
-            if(the_node[0] != None):
-                break
-            if(child.state == state):
-                the_node[0] = child
+    depth = 0
+    counter = 0
+    for i in range(iterations):
+        import sys
+        print("nodes:",counter)
+        sys.stdout.write('\x1b[1A')
+        sys.stdout.write('\x1b[2K')
         
-        if(the_node[0] == None):
-            for child in node.childs:
-                check_childs(child,state,the_node)
-                if(the_node[0] != None):
-                    break
+        earlyQuit = False
+        while(len(current_node.untried_actions) == 0):
+            isFinished,winner = current_node.gb.isTerminal()
+            if(isFinished or depth > max_depth):
+                current_node.backprop(winner)
+             #   current_node.gb.printBoard()
+                current_node = root_node
+                depth = 0
+                earlyQuit = True
+                break
+                
+            else:
+                
+                current_node = current_node.select()  
+                depth += 1 
+        
+        if(earlyQuit):
+            continue
+        
+        current_node = current_node.expand()
+        counter+=1
 
-    def best_move(state,symbol):
-        the_node = [None]
-        if(root_node.state == state):
-            the_node[0] = root_node
-        else:
-            check_childs(root_node,state,the_node)
+        winner = current_node.simulate()
+        
+        current_node.backprop(winner)
+        # current_node.gb.printBoard()
+        
+        current_node = root_node
+        depth = 0
+       #     print(i)
+    
 
+    def best_move():
         foo = lambda x:  x.visits
-        a = the_node[0].childs
+        a = root_node.childs
         action = sorted(a,key=foo)[-1].action
         return action
-        
+    
+    return best_move()
+
+if __name__ == "__main__":
+    state = [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0]]
+           
         
 
-    state = [[0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0]]
+   
     gb = gameBoard.gameBoard(state)
 
     symbol = 1
 
     isFinished, winner = gb.isTerminal()
     while not(isFinished):
-        print("HI")
         if(symbol == 1):
-            symbol = 2
+            symbol = 2 #O
+            gb.board = gb.move(symbol,find_best_move(gb.board,symbol,10000,5))
         else:
-            symbol = 1
-        gb.board = gb.move(symbol,best_move(gb.board,symbol))
+            symbol = 1    #X
+            gb.board = gb.move(symbol,find_best_move(gb.board,symbol,1000,5))
+            #gb.board = gb.move(symbol,int(input("Enter move: ")))
+        
         gb.printBoard()
         isFinished, winner = gb.isTerminal()
+    """
 
-    while(True):
-        symbol = 0
-        computerFirst = False
-        if(input("do u want to go first (y for yes, n for no)") == "y"):
-            symbol = 1
-        else:
-            symbol = 2
-
-    
-        while not(isFinished):
-            if(symbol == 1):
-                symbol = 2
-                gb.board = gb.move(symbol,int(input("Enter move: ")))
-            elif(symbol == 2):
+        while(True):
+            symbol = 0
+            computerFirst = False
+            if(input("do u want to go first (y for yes, n for no)") == "y"):
                 symbol = 1
-                gb.board = gb.move(symbol, best_move(gb.board,symbol))
-            gb.printBoard()
-            isFinished, winner = gb.isTerminal()
-        print("PLAY AGAIN")
+            else:
+                symbol = 2
 
-        """
+        
+            while not(isFinished):
+                if(symbol == 1):
+                    symbol = 2
+                    gb.board = gb.move(symbol,int(input("Enter move: ")))
+                elif(symbol == 2):
+                    symbol = 1
+                    gb.board = gb.move(symbol, best_move(gb.board,symbol))
+                gb.printBoard()
+                isFinished, winner = gb.isTerminal()
+            print("PLAY AGAIN")
+
+            """
+    """
        ---------
 |0000000|
 |0000000|
