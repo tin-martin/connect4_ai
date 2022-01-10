@@ -114,17 +114,23 @@ def find_best_move(state,symbol,iterations,max_depth=5):
         print("nodes:",counter)
         sys.stdout.write('\x1b[1A')
         sys.stdout.write('\x1b[2K')
-        
         earlyQuit = False
         while(len(current_node.untried_actions) == 0):
             isFinished,winner = current_node.gb.isTerminal()
-            if(isFinished or depth > max_depth):
+            if(isFinished):
                 current_node.backprop(winner)
              #   current_node.gb.printBoard()
                 current_node = root_node
                 depth = 0
                 earlyQuit = True
                 break
+        #    elif(depth > max_depth):
+        #        current_node.simulate()
+        #        current_node.backprop(winner)
+        ##        current_node = root_node
+                depth = 0
+        #        earlyQuit = True
+        #        break
                 
             else:
                 
@@ -147,13 +153,10 @@ def find_best_move(state,symbol,iterations,max_depth=5):
        #     print(i)
     
 
-    def best_move():
-        foo = lambda x:  x.visits
-        a = root_node.childs
-        action = sorted(a,key=foo)[-1].action
-        return action
-    
-    return best_move()
+    foo = lambda x:  x.visits
+    a = root_node.childs
+    action = sorted(a,key=foo)[-1].action
+    return action
 
 if __name__ == "__main__":
     state = [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0]]
@@ -169,10 +172,10 @@ if __name__ == "__main__":
     while not(isFinished):
         if(symbol == 1):
             symbol = 2 #O
-            gb.board = gb.move(symbol,find_best_move(gb.board,symbol,10000,5))
+            gb.board = gb.move(symbol,find_best_move(gb.board,symbol,5000,2))
         else:
             symbol = 1    #X
-            gb.board = gb.move(symbol,find_best_move(gb.board,symbol,1000,5))
+            gb.board = gb.move(symbol,find_best_move(gb.board,symbol,50000,5))
             #gb.board = gb.move(symbol,int(input("Enter move: ")))
         
         gb.printBoard()
