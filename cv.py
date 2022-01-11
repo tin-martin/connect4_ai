@@ -9,22 +9,29 @@ import math,time
 def setgrid(image):
     rects = []
     try:
+       
         new_width = 500 # Resize
         img_h,img_w,_ = image.shape
         scale = new_width / img_w
         img_w = int(img_w * scale)
         img_h = int(img_h * scale)
         image = cv2.resize(image, (img_w,img_h), interpolation = cv2.INTER_AREA)
+        cv2.imshow("",image)
+        cv2.waitKey(0)
         copy = image.copy()
 
         image = cv2.bilateralFilter(image,10,190,190) 
-
+        cv2.imshow("",image)
+        cv2.waitKey(0)
 
         image = cv2.fastNlMeansDenoising(image,10,7,21)
+        cv2.imshow("",image)
+        cv2.waitKey(0)
 
 
         edges = cv2.Canny(image, 45,120)
-
+        cv2.imshow("",edges)
+        cv2.waitKey(0)
         uImg = image.copy()
 
 
@@ -35,6 +42,20 @@ def setgrid(image):
         
 
         good_contours = []
+        copy1 = image.copy()
+        for contour in contours:
+            cv2.drawContours(copy1, contour, -1, (0,255,0), 1)
+        cv2.imshow("",copy1)
+        cv2.waitKey(0)
+
+        copy1 = image.copy()
+        for contour in contours:
+            cnt = cv2.approxPolyDP(contour,0.01*cv2.arcLength(contour,True),True) 
+            cv2.drawContours(copy1, [cnt], -1, (0, 255, 0), 1)
+        cv2.imshow("",copy1)
+        cv2.waitKey(0)
+
+        copy1 = image.copy()
         for contour in contours:
             cnt = cv2.approxPolyDP(contour,0.01*cv2.arcLength(contour,True),True) 
             x,y,w,h = cv2.boundingRect(cnt)
@@ -43,33 +64,42 @@ def setgrid(image):
             c = math.pi*d
             if(len(cnt) >= 8 and 100*(w/h) > 80 and 100*(h/w) > 80 and c >= cv2.arcLength(cnt,True)-15 and c <= cv2.arcLength(cnt,True)+15         ):    
                 rects.append([x,y,w,h])
-                good_contours.append(cnt)
-            
-            
-            
+                good_contours.append([cnt])
+                cv2.drawContours(copy1, [cnt], -1, (0, 255, 0), 1)
+
+        cv2.imshow("",copy1)
+        cv2.waitKey(0)
+        
+        copy1 = image.copy()
+        toDel = []
 
         avg_area = int(math.trunc(sum([r[2]*r[3] for r in rects])/len(rects)))
-
-        toDel = []
-        for rect in rects:
+        best_contours = []
+        for rect,good_contour in zip(rects,good_contours):
             x,y,w,h = rect
             a = w*h
-            if not(a >= (avg_area-200) and a <= (avg_area+200)):
-                toDel.append(rect)
-
-        for d in toDel:
-            rects.remove(d)
+            if (a >= (avg_area-200) and a <= (avg_area+200)):
                 
-
-        for rect in rects:
-            x,y,w,h = rect
-            a = w*h
-            #cv2.rectangle(image,(x,y),(x+w,y+h),(0,255,0),2)
-            # cv2.drawContours(image, [cnt], 0, (0), 1)
+                cv2.rectangle(copy1,(x,y),(x+w,y+h),(0,255,0),2)
+                cv2.drawContours(copy1, [cnt], -1, (0, 255, 0), 1)
+                best_contours.append(cnt)
+            else: 
+                toDel.append(rect)
+        good_contours = best_contours
+        
+        cv2.imshow("",copy1)
+        cv2.waitKey(0)
+      
+        for r in toDel:
+            rects.remove(r)
+      
+        copy2 = image.copy()
+       
             
         avg_width = sum([r[2] for r in rects])/len(rects)
         avg_height = sum([r[3] for r in rects])/len(rects)
-        
+        cv2.imshow("",copy1)
+        cv2.waitKey(0)
         
             #make grid
         cols,rows = 7,6
@@ -100,11 +130,12 @@ def setgrid(image):
                 cv2.circle(image,(x,y),radius+2,(0,0,0),1)
     except:
         pass
+    print('AF')
     return image,rects
 
 
 def fill(image,rects,rows,cols):
-    board = [[" " for i in range(rows)] for j in range(cols)]
+    board = [[0 for i in range(rows)] for j in range(cols)]
     new_width = 500 # Resize
     img_h,img_w,_ = image.shape
     scale = new_width / img_w
@@ -122,9 +153,6 @@ def fill(image,rects,rows,cols):
         
     avg_width = sum([r[2] for r in rects])/len(rects)
     avg_height = sum([r[3] for r in rects])/len(rects)
-
-    
-   
 
     foo = lambda x : x[0]
     rects.sort(key=foo)
@@ -150,8 +178,6 @@ def fill(image,rects,rows,cols):
             y = int(min_y+spacing_y*(row)+radius)
             
             cv2.circle(image,(x,y),radius+2,1,1)
-   
-
 
     copy = image.copy()
     height,width,depth = copy.shape
@@ -201,20 +227,19 @@ def fill(image,rects,rows,cols):
             percent_yellow = (num_yellow/(math.pi*radius*2))*100
 
             if(percent_red >= 80):
-                board[col][row] = "X"
+                board[col][row] = 1
                 cv2.circle(copy,(x,y),radius,(0,0,255),-1)
             elif(percent_yellow >= 8):
-                board[col][row] = "O"
+                board[col][row] = 2
                 cv2.circle(copy,(x,y),radius,(0,255,255),-1)
             else:
                 cv2.circle(copy,(x,y),radius,(0,0,0),1)
 
-                    
-
             circle_img = np.zeros((height,width), np.uint8)
     return board,copy
-   #cv2.imshow("",image)
-   # cv2.waitKey(0)
+
+    #cv2.imshow("",image)
+    # cv2.waitKey(0)
 
             
 
