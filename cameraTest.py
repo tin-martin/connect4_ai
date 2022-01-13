@@ -5,8 +5,25 @@ import cv
 import numpy as np
 import time 
 from c4 import gameBoard
+from os import fdopen
+from typing import DefaultDict
+import numpy as np
+import random
+from numpy.lib.function_base import _diff_dispatcher, diff
+
+from numpy.testing._private.utils import _assert_valid_refcount
+from c4 import gameBoard
+from copy import deepcopy
+import math
+import pickle
+
+import time
+import mcts_v2
+
 # define a video capture object
-vid = cv2.VideoCapture(2)
+vid = cv2.VideoCapture(3)
+"""
+
 def increase_brightness(img, value=0):
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     h, s, v = cv2.split(hsv)
@@ -20,7 +37,82 @@ def increase_brightness(img, value=0):
     return img
 
 
+state = [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0]]
+root_gb = gameBoard.gameBoard(board=state)
+root_node = mcts_v2.Node(gameBoard=root_gb)
+
+current_node = root_node
+for i in range(50000000):
+#for i in range(10000):
+    
+    if(len(current_node.untried_actions) == 0):
+        isFinished,winner = current_node.gb.isTerminal()
+        if(isFinished):
+            current_node.backprop(winner)
+            current_node.gb.printBoard()
+            current_node = root_node
+        else:
+            current_node = current_node.select()  
+        
+    else:    
+        current_node = current_node.expand()
+
+        winner = current_node.simulate()
+        
+        current_node.backprop(winner)
+        current_node.gb.printBoard()
+        
+        current_node = root_node
+        print(i)
+    
+
+
+
+def check_childs(node,state,the_node):
+    for child in node.childs:
+        if(the_node != None):
+            break
+        if(child.state == state):
+            the_node = child
+    
+    if(the_node == None):
+        for child in node.childs:
+            if(the_node != None):
+                break
+            check_childs(child,state,the_node)
+
+def best_move(state,symbol):
+    the_node = None
+    if(root_node.state == state):
+        the_node = root_node
+    else:
+        check_childs(root_node,state,the_node)
+
+    foo = lambda x:  x.visits
+    action = sorted(the_node.childs,key=foo)[-1].action
+    return action
+    
+    
+
+"""
+
+
+
+
+
+
+
 rects = []
+
+
+
+
+
+
+
+
+
+
 while(True):
       
     # Capture the video frame
@@ -31,7 +123,7 @@ while(True):
     
    
     # Display the resulting frame
-    cv2.imshow('frame', frame)
+    cv2.imshow("", frame)
     
     # the 'q' button is set as the
     # quitting button you may use any
@@ -53,7 +145,7 @@ while(True):
 
    
     # Display the resulting frame
-    cv2.imshow('frame', frame)
+    cv2.imshow("", frame)
     
     # the 'q' button is set as the
     # quitting button you may use any
@@ -63,33 +155,21 @@ while(True):
     key = cv2.waitKey(0)
     if key == 27:#if ESC is pressed, exit loop
         break
+ 
 
-while(True):
-      
-    # Capture the video frame
-    # by frame
+while(True):  
     ret, frame = vid.read()
-   # frame = increase_brightness(frame,30)
-
     board,frame =  cv.fill(frame,rects,6,7)
     gb = gameBoard.gameBoard(board)
-    gb.printBoard()
    
-    # Display the resulting frame
+    gb.printBoard()
     cv2.imshow('frame', frame)
+    cv2.waitKey(0)
+    print("Best Move: ",mcts_v2.find_best_move(board,1000,4))
     
-    # the 'q' button is set as the
-    # quitting button you may use any
-    # desired button of your choice
-    
-    
-    key = cv2.waitKey(5000)
-    if key == 27:#if ESC is pressed, exit loop
-        break
     
 
-  
-# After the loop release the cap object
+
 vid.release()
 # Destroy all the windows
 cv2.destroyAllWindows()
