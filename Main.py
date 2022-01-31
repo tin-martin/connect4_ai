@@ -18,7 +18,7 @@ import math
 import pickle
 
 import time
-import mcts_v2
+import mcts
 # define a video capture object
 vid = cv2.VideoCapture(0)
 def increase_brightness(img, value=0):
@@ -36,7 +36,7 @@ def increase_brightness(img, value=0):
 
 state = [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0]]
 root_gb = gameBoard.gameBoard(board=state)
-root_node = mcts_v2.Node(gameBoard=root_gb)
+root_node = mcts.Node(gameBoard=root_gb)
 
 current_node = root_node
 rects = []
@@ -143,7 +143,7 @@ while not(isTerminal):
     cv2.waitKey(0)
     if(isTerminal):
         break
-    best_move = mcts_v2.find_best_move(state,1000,50,exploration_parameter=math.sqrt(2),symbol=player_symbol)
+    best_move = mcts.find_best_move(state,1000,50,exploration_parameter=math.sqrt(2),symbol=player_symbol)
     print("Best Move: ",best_move)
     temp_state = gb.move(computer_symbol+10,best_move)
     state = gb.move(computer_symbol,best_move)
