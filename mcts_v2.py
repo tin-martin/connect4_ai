@@ -10,13 +10,13 @@ from copy import deepcopy
 import math
 import pickle
 import pyautogui
-
+import sys
 import time
 
 start_time = time.time()
 
 class Node:
-    def __init__(self, gameBoard, parent: object = None, symbol: str = 1):
+    def __init__(self, gameBoard, parent: object = None, symbol: str = 1,exploration_parameter: int=math.sqrt(2)):
         self.gb = gameBoard
     
         self.state = deepcopy(self.gb.board)
@@ -35,6 +35,7 @@ class Node:
         self.symbol = symbol
 
         self.action = None
+        self.exploration_parameter = exploration_parameter
 
     def calculate_ucb1(self):
         if(self.visits == 0):
@@ -46,7 +47,7 @@ class Node:
                 self.parent.visits += child.visits
         ########################################a
         #print(self.wins/self.visits + np.sqrt(2)*np.sqrt(np.log(self.parent.visits)/self.visits))
-        return self.wins/self.visits + np.sqrt(2*np.log(self.parent.visits)/self.visits)
+        return self.wins/self.visits + np.sqrt(self.exploration_parameter)*np.sqrt(np.log(self.parent.visits)/self.visits)
 
     def select(self):
         foo = lambda x:  x.ucb1
@@ -65,7 +66,7 @@ class Node:
         new_state = self.gb.move(new_symbol,temp_action)
 
         new_gb = gameBoard.gameBoard(new_state)
-        child = Node(new_gb,self,new_symbol)
+        child = Node(new_gb,self,new_symbol,exploration_parameter = self.exploration_parameter)
         ###############################
         child.action = temp_action
         ###############################
@@ -103,15 +104,15 @@ class Node:
             node.ucb1 = node.calculate_ucb1()
             node = node.parent
 
-def find_best_move(state,symbol,iterations,max_depth=5):
+def find_best_move(state,iterations=10000,max_depth=5,exploration_parameter=math.sqrt(2),symbol=1):
     root_gb = gameBoard.gameBoard(board=state)
-    root_node = Node(gameBoard=root_gb) 
+    root_node = Node(gameBoard=root_gb,exploration_parameter=exploration_parameter,symbol=symbol) 
     current_node = root_node
     depth = 0
     counter = 0
     for i in range(iterations):
-        import sys
-        print("nodes:",counter)
+        
+        print(i)
         sys.stdout.write('\x1b[1A')
         sys.stdout.write('\x1b[2K')
         earlyQuit = False
@@ -119,38 +120,32 @@ def find_best_move(state,symbol,iterations,max_depth=5):
             isFinished,winner = current_node.gb.isTerminal()
             if(isFinished):
                 current_node.backprop(winner)
-             #   current_node.gb.printBoard()
                 current_node = root_node
                 depth = 0
                 earlyQuit = True
                 break
-        #    elif(depth > max_depth):
-        #        current_node.simulate()
-        #        current_node.backprop(winner)
-        ##        current_node = root_node
-                depth = 0
-        #        earlyQuit = True
-        #        break
-                
             else:
-                
                 current_node = current_node.select()  
-                depth += 1 
-        
+                depth += 1
+                if(depth > max_depth):
+                    earlyQuit = True
+                    break
         if(earlyQuit):
+            winner = current_node.simulate()
+            current_node.backprop(winner)
+            current_node = root_node
+            depth = 0 
             continue
-        
         current_node = current_node.expand()
         counter+=1
 
         winner = current_node.simulate()
         
         current_node.backprop(winner)
-        # current_node.gb.printBoard()
-        
+      
         current_node = root_node
         depth = 0
-       #     print(i)
+
     
 
     foo = lambda x:  x.visits
@@ -159,7 +154,7 @@ def find_best_move(state,symbol,iterations,max_depth=5):
     return action
 
 if __name__ == "__main__":
-    state = [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0]]
+    state = [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]
            
         
 
@@ -169,89 +164,41 @@ if __name__ == "__main__":
     symbol = 1
 
     isFinished, winner = gb.isTerminal()
-    while not(isFinished):
-        if(symbol == 1):
-            symbol = 2 #O
-            gb.board = gb.move(symbol,find_best_move(gb.board,symbol,5000,2))
-        else:
-            symbol = 1    #X
-            gb.board = gb.move(symbol,find_best_move(gb.board,symbol,50000,5))
-            #gb.board = gb.move(symbol,int(input("Enter move: ")))
-        
-        gb.printBoard()
-        isFinished, winner = gb.isTerminal()
-    """
 
-        while(True):
-            symbol = 0
-            computerFirst = False
-            if(input("do u want to go first (y for yes, n for no)") == "y"):
-                symbol = 1
+    gb.printBoard()
+    player_goes_first = input("Do you want to go first? (Y for yes, N for no) ")
+
+    if(player_goes_first == "N"):
+        while not(isFinished):
+            if(symbol == 1):
+                symbol = 2 
+                best_move = find_best_move(gb.board,10000,4,exploration_parameter=math.sqrt(2)-0.001)
+                gb.board = gb.move(symbol,best_move)
+                print("Computer move: " + str(best_move))
             else:
-                symbol = 2
-
-        
-            while not(isFinished):
-                if(symbol == 1):
-                    symbol = 2
-                    gb.board = gb.move(symbol,int(input("Enter move: ")))
-                elif(symbol == 2):
-                    symbol = 1
-                    gb.board = gb.move(symbol, best_move(gb.board,symbol))
-                gb.printBoard()
-                isFinished, winner = gb.isTerminal()
-            print("PLAY AGAIN")
-
-            """
-    """
-       ---------
-|0000000|
-|0000000|
-|0000100|
-|0020200|
-|0010200|
-|0120120|
----------
-
-
-        """
-
-
-
-
-
-
-
-    """
-
-    --------
-    |      |
-    |XOXOXO|
-    |XOXOXO|
-    |XOXOXO|
-    |XOXOXO|
-    |XOXOXO|
-    |XOXOXO|
-    --------
-    ---------
-    |0211200|
-    |0122121|
-    |0211121|
-    |2122112|
-    |1211221|
-    |2122122|
-    ---------
-    18410069
-
-
-    ---------
-    |2201211|
-    |1102122|
-    |2211121|
-    |1122112|
-    |2211221|
-    |1122122|
-    ---------
-    20848053
-    """
-
+                symbol = 1    
+                gb.board = gb.move(symbol,int(input("Enter move: ")))
+            gb.printBoard()
+            
+            isFinished, winner = gb.isTerminal()
+    else:
+        while not(isFinished):
+            if(symbol == 2):
+                symbol = 1 
+                best_move = find_best_move(gb.board,10000,4,exploration_parameter=math.sqrt(2)-0.001,symbol=2)
+                gb.board = gb.move(symbol,best_move)
+                print("Computer move: " + str(best_move))
+            else:
+                symbol = 2    #X
+                #gb.board = gb.move(symbol,find_best_move(gb.board,100000,42,exploration_parameter=math.sqrt(2)))
+                gb.board = gb.move(symbol,int(input("Enter move: ")))
+            gb.printBoard()
+            
+            isFinished, winner = gb.isTerminal()
+    if(winner == "TIE"):
+        print("IT'S A TIE!")
+    elif((player_goes_first != "N" and winner == 2) or (player_goes_first == "N" and winner == 1)):
+        print("PLAYER WINS!")
+    elif((player_goes_first != "N" and winner == 1) or (player_goes_first == "N" and winner == 2)):
+        print("COMPUTER WINS!")
+    
