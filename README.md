@@ -1,4 +1,4 @@
-# connect4
+# Connect4 AI system for Real-world Gameplay
 As part of my IB Personal Project, I have created a connect 4 gameplay ai (mcts) and computer vision framework for playing connect 4 with AI in-real-life.
 
 - The computer vision component is based off a framework devised by [Matt Jennings](https://mattjennings.co.uk/portfolio/Connect-Four%20Computer%20Vision%20A.I/)  allows the computer to read the state of a real-world board.
