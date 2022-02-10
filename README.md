@@ -8,5 +8,6 @@ and the gameplay ai.
 - The gameplay ai is a hard-coded version of mcts. (Monte Carlo Tree Search)
 
 Demo Video:
+
 [![Watch the video](https://img.youtube.com/vi/wiWxFHbbxi0/hqdefault.jpg)](https://www.youtube.com/watch?v=wiWxFHbbxi0)
 
