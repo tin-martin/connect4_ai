@@ -1,11 +1,8 @@
 # connect4
-Implementation of connect4, connect4 gameplay AI, computer vision system for connect4 board identification.
+As part of my IB Personal Project, I have created a connect 4 gameplay ai (mcts) and computer vision framework for playing connect 4 with AI in-real-life.
 
-
-This is a cool project that I worked on. It is split into two parts: computer vision identification framework which identifies the game state from images 
-and the gameplay ai. 
-- The computer vision component is based off a framework devised by [Matt Jennings](https://mattjennings.co.uk/portfolio/Connect-Four%20Computer%20Vision%20A.I/)
-- The gameplay ai is a hard-coded version of mcts. (Monte Carlo Tree Search)
+- The computer vision component is based off a framework devised by [Matt Jennings](https://mattjennings.co.uk/portfolio/Connect-Four%20Computer%20Vision%20A.I/)  allows the computer to read the state of a real-world board.
+- The gameplay ai is a hard-coded version of mcts. (Monte Carlo Tree Search) which provides the best piece placement denoted by the blue-edged piece on the display. 
 
 Demo Video:
 
