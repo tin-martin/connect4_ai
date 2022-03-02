@@ -6,5 +6,5 @@ For my IB Personal Project, I created a connect 4 gameplay ai (mcts) and compute
 
 Demo Video:
 
-[![Watch the video](https://img.youtube.com/vi/wiWxFHbbxi0/hqdefault.jpg)](https://www.youtube.com/watch?v=wiWxFHbbxi0)
+[![Watch the video](http://img.youtube.com/vi/wiWxFHbbxi0/0.jpg)](https://www.youtube.com/watch?v=wiWxFHbbxi0)
 
